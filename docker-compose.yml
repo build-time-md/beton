@@ -1,0 +1,59 @@
+# Full stack for Coolify (Docker Compose build pack): Next.js app + self-hosted OSRM.
+#
+# OSRM prepares itself on first boot — no manual steps:
+#   1) osrm-data  downloads the Moldova OSM extract into a persistent volume (once)
+#   2) osrm        builds the routing graph (extract/partition/customize) on first
+#                  run, then serves osrm-routed; subsequent restarts skip the build
+#   3) app         the Next.js site, reaches OSRM by service name
+#
+# The graph build runs once and can take ~1–2 min; the app starts meanwhile and
+# routing/pricing begins working as soon as OSRM is ready.
+
+services:
+  # 1) Download the Moldova OSM extract into the shared volume (only if missing).
+  osrm-data:
+    image: alpine:3.20
+    volumes:
+      - osrm_data:/data
+    command: >
+      sh -c "test -f /data/moldova-latest.osm.pbf ||
+      wget -O /data/moldova-latest.osm.pbf
+      https://download.geofabrik.de/europe/moldova-latest.osm.pbf"
+    restart: "no"
+
+  # 2) Build the routing graph once, then serve it.
+  osrm:
+    image: ghcr.io/project-osrm/osrm-backend:latest
+    depends_on:
+      osrm-data:
+        condition: service_completed_successfully
+    volumes:
+      - osrm_data:/data
+    command: >
+      sh -c "set -e; cd /data;
+      if [ ! -f .ready ]; then
+        osrm-extract -p /opt/car.lua moldova-latest.osm.pbf &&
+        osrm-partition moldova-latest.osrm &&
+        osrm-customize moldova-latest.osrm &&
+        touch .ready;
+      fi;
+      exec osrm-routed --algorithm mld moldova-latest.osrm"
+    expose:
+      - "5000"
+    restart: unless-stopped
+
+  # 3) The website. Coolify routes your domain to this service (port 3000).
+  app:
+    build: .
+    depends_on:
+      - osrm
+    environment:
+      # Server-side, used by /api/plan at runtime to reach OSRM on the compose network.
+      OSRM_URL: http://osrm:5000
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  # Persists the downloaded + preprocessed routing data across deploys.
+  osrm_data:
