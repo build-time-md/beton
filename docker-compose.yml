@@ -50,8 +50,9 @@ services:
     environment:
       # Server-side, used by /api/plan at runtime to reach OSRM on the compose network.
       OSRM_URL: http://osrm:5000
-    ports:
-      - "3000:3000"
+    # Coolify routes your domain to this port via its proxy (set it in "Domains for app").
+    expose:
+      - "3000"
     restart: unless-stopped
 
 volumes:
