@@ -7,13 +7,14 @@ import {
   Marker,
   Polyline,
   Popup,
+  Tooltip,
   ZoomControl,
   useMap,
   useMapEvents,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { ConcreteStation, LatLng } from "@/lib/types";
+import type { MapStation, LatLng } from "@/lib/types";
 import { BRAND } from "@/lib/brand";
 
 const TILE_URL =
@@ -28,9 +29,6 @@ const GLYPHS = {
   // factory — concrete batching plant
   station:
     '<path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M7 18h.01M12 18h.01M17 18h.01"/>',
-  // truck — the delivery vehicle
-  truck:
-    '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
   // home — the delivery destination (client / site)
   client:
     '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
@@ -65,7 +63,6 @@ function pin(
 
 const icons = {
   client: pin(BRAND.client, GLYPHS.client),
-  truck: pin(BRAND.charcoal, GLYPHS.truck),
   station: pin(BRAND.grey, GLYPHS.station),
   chosen: pin(BRAND.green, GLYPHS.station, { ring: true }),
 };
@@ -76,11 +73,18 @@ function FitRoute({ geometry }: { geometry?: [number, number][] }) {
   useEffect(() => {
     if (!geometry || geometry.length < 2) return;
     const bounds = L.latLngBounds(geometry);
-    // On desktop the panel floats over the left side — keep the route clear of it.
-    const isDesktop =
-      typeof window !== "undefined" && window.innerWidth > 768;
+    // Below 768px the panel sits under the map (no overlap); above, it floats
+    // over the left side, so reserve its real width (348px or 680px) + margin
+    // as left padding to keep the whole route clear of it.
+    const isMobile =
+      typeof window !== "undefined" && window.innerWidth <= 768;
+    let padLeft = 40;
+    if (!isMobile && typeof document !== "undefined") {
+      const panel = document.querySelector<HTMLElement>(".app__panel");
+      padLeft = panel ? Math.round(panel.getBoundingClientRect().width) + 40 : 400;
+    }
     map.fitBounds(bounds, {
-      paddingTopLeft: isDesktop ? [400, 50] : [40, 40],
+      paddingTopLeft: [padLeft, isMobile ? 40 : 50],
       paddingBottomRight: [40, 40],
     });
   }, [geometry, map]);
@@ -99,10 +103,11 @@ function ClickHandler({ onClick }: { onClick: (p: LatLng) => void }) {
 export type LeafletMapProps = {
   center: [number, number];
   zoom: number;
-  stations: ConcreteStation[];
+  stations: MapStation[];
   client: LatLng | null;
-  truck: LatLng | null;
   chosenStationId?: string;
+  /** Generic label shown for every plant (real names are hidden from customers). */
+  stationLabel: string;
   geometry?: [number, number][];
   onMapClick: (p: LatLng) => void;
 };
@@ -112,8 +117,8 @@ export default function LeafletMap({
   zoom,
   stations,
   client,
-  truck,
   chosenStationId,
+  stationLabel,
   geometry,
   onMapClick,
 }: LeafletMapProps) {
@@ -140,8 +145,12 @@ export default function LeafletMap({
           position={[s.lat, s.lng]}
           icon={s.id === chosenStationId ? icons.chosen : icons.station}
         >
+          {/* Permanent generic label above the pin — real plant names stay hidden. */}
+          <Tooltip permanent direction="top" offset={[0, -46]} className="station-tip">
+            {stationLabel}
+          </Tooltip>
           <Popup>
-            <strong>{s.name}</strong>
+            <strong>{stationLabel}</strong>
           </Popup>
         </Marker>
       ))}
@@ -149,12 +158,6 @@ export default function LeafletMap({
       {client ? (
         <Marker position={[client.lat, client.lng]} icon={icons.client}>
           <Popup>Client (destinație)</Popup>
-        </Marker>
-      ) : null}
-
-      {truck ? (
-        <Marker position={[truck.lat, truck.lng]} icon={icons.truck}>
-          <Popup>Camion</Popup>
         </Marker>
       ) : null}
 

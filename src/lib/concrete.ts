@@ -1,38 +1,52 @@
 /**
- * Concrete grades and prices.
+ * Concrete grades and per-plant prices.
  *
- * `factoryPrice` = what we pay the plant per m³ (market estimate, 2025–2026).
- * We resell at factoryPrice + MARKUP_PER_M3. The customer only ever sees the
- * final per-m³ price; the factory price and markup stay internal.
- *
- * TODO: replace factoryPrice with the real prices negotiated with the plants.
+ * Prices are the final, customer-facing lei/m³ (no separate markup). They depend
+ * on the plant: DEFAULT_PRICES applies to every station, unless the station id
+ * has an entry in STATION_PRICES (e.g. Concrete Alliance has its own list).
  */
-export const MARKUP_PER_M3 = 50;
-
 export type ConcreteGrade = {
   id: string;
   /** Customer-facing label (marca + clasa). */
   label: string;
-  /** Plant price per m³ (lei), before markup. */
-  factoryPrice: number;
 };
 
 export const GRADES: ConcreteGrade[] = [
-  { id: "M150", label: "M150 (C8/10)", factoryPrice: 1550 },
-  { id: "M200", label: "M200 (C12/15)", factoryPrice: 1650 },
-  { id: "M250", label: "M250 (C16/20)", factoryPrice: 1750 },
-  { id: "M300", label: "M300 (C20/25)", factoryPrice: 1850 },
-  { id: "M350", label: "M350 (C25/30)", factoryPrice: 2000 },
+  { id: "M150", label: "M150 (C8/10)" },
+  { id: "M200", label: "M200 (C12/15)" },
+  { id: "M250", label: "M250 (C16/20)" },
+  { id: "M300", label: "M300 (C20/25)" },
+  { id: "M350", label: "M350 (C25/30)" },
 ];
+
+/** Default client price per m³ (lei), by grade id — applies to every plant… */
+export const DEFAULT_PRICES: Record<string, number> = {
+  M150: 1600,
+  M200: 1690,
+  M250: 1785,
+  M300: 1890,
+  M350: 1975,
+};
+
+/** …except plants that have their own price list, keyed by station id. */
+export const STATION_PRICES: Record<string, Record<string, number>> = {
+  "concrete-alliance": {
+    M150: 1550,
+    M200: 1650,
+    M250: 1750,
+    M300: 1850,
+    M350: 1950,
+  },
+};
+
+/** Client price per m³ for a grade at a given station (station override → default). */
+export function priceFor(stationId: string, gradeId: string): number {
+  return STATION_PRICES[stationId]?.[gradeId] ?? DEFAULT_PRICES[gradeId] ?? 0;
+}
 
 // Inițial: niciun beton selectat și 0 m³.
 export const DEFAULT_GRADE_ID = "";
 export const DEFAULT_VOLUME_M3 = 0;
-
-/** Client price per m³ (factory price + markup). */
-export function clientPricePerM3(grade: ConcreteGrade): number {
-  return grade.factoryPrice + MARKUP_PER_M3;
-}
 
 export function getGrade(id: string): ConcreteGrade | undefined {
   return GRADES.find((g) => g.id === id);

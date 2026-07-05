@@ -2,10 +2,12 @@
 
 Hartă pentru o firmă de transport beton. Utilizatorul plasează **locația clientului**
 (sau folosește locația sa) și, opțional, **poziția camionului**. Aplicația alege
-**cea mai potrivită stație de beton** și desenează ruta:
+**mereu stația cea mai apropiată de client** (după drumul **încărcat** stație → client,
+fiindcă betonul proaspăt are timp de lucru limitat) și desenează ruta:
 
-- cu camion: minimizează timpul total **camion → stație → client**;
-- fără camion: alege stația cea mai apropiată de client (beton proaspăt = timp limitat).
+- fără camion: ruta stație → client;
+- cu camion: ruta camion → stație (gol) → client. Camionul ajunge gol la stație,
+  deci poziția lui doar desenează traseul — **nu** schimbă stația aleasă.
 
 ## Stack
 

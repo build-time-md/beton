@@ -24,13 +24,13 @@ function FlowLine() {
           <stop offset="1" stopColor="var(--brand)" />
         </linearGradient>
       </defs>
-      <g fill="none" stroke="url(#flowgrad)" strokeWidth="2.5" strokeLinecap="round">
-        {/* segment 1: dip down (icon 1 -> icon 2) */}
-        <path d="M250 30 C 330 56, 400 56, 440 32" />
-        <path d="M431 26 L 443 32 L 431 38" strokeLinejoin="round" />
-        {/* segment 2: arch up (icon 2 -> icon 3) */}
-        <path d="M560 28 C 640 4, 712 4, 752 30" />
-        <path d="M743 24 L 755 30 L 743 36" strokeLinejoin="round" />
+      <g fill="none" stroke="url(#flowgrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        {/* segment 1: dip down, arriving horizontal so the head aligns (icon 1 -> icon 2) */}
+        <path d="M250 30 C 338 54, 398 30, 444 30" />
+        <path d="M432 24 L 444 30 L 432 36" />
+        {/* segment 2: arch up, arriving horizontal so the head aligns (icon 2 -> icon 3) */}
+        <path d="M556 30 C 640 6, 700 30, 750 30" />
+        <path d="M738 24 L 750 30 L 738 36" />
       </g>
     </svg>
   );

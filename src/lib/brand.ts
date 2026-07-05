@@ -6,7 +6,7 @@
  * route line) and mirrored as CSS custom properties in globals.css.
  */
 export const BRAND = {
-  name: "Beton",
+  name: "DARSAN",
   tagline: "Livrare beton — Chișinău",
 
   /** Truck green. */

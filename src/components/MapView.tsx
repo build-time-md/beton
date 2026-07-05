@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import type { ConcreteStation, DeliveryPlan, LatLng } from "@/lib/types";
-import type { DeliveryCost } from "@/lib/pricing";
-import { GRADES, DEFAULT_GRADE_ID, DEFAULT_VOLUME_M3, clientPricePerM3 } from "@/lib/concrete";
+import type { MapStation, DeliveryPlan, LatLng } from "@/lib/types";
+import type { OrderEstimate } from "@/lib/pricing";
+import { GRADES, DEFAULT_GRADE_ID, DEFAULT_VOLUME_M3, DEFAULT_PRICES } from "@/lib/concrete";
 import { useI18n } from "@/lib/i18n";
 
 // Leaflet touches `window`, so the map must render client-side only.
@@ -19,8 +19,6 @@ const DEFAULT_CENTER: [number, number] = [
 ];
 const DEFAULT_ZOOM = Number(process.env.NEXT_PUBLIC_DEFAULT_ZOOM ?? 11);
 
-// Baza camionului — FIXĂ, nu poate fi modificată din UI. 47°05'20.7"N 28°41'59.4"E (Cojușna).
-const TRUCK_HOME: LatLng = { lat: 47.089083, lng: 28.699833 };
 // Locație implicită dacă clientul nu permite accesul la geolocație: Ialoveni.
 const FALLBACK_CLIENT: LatLng = { lat: 46.9469, lng: 28.777 };
 
@@ -29,31 +27,41 @@ const fmtMin = (s: number) => `${Math.round(s / 60)} min`;
 
 type T = (key: string, vars?: Record<string, string | number>) => string;
 
-function deliveryRows(d: DeliveryCost, t: T): { label: string; value: string }[] {
-  if (d.zone === "city") return [];
-  const km = d.oneWayKm.toFixed(1);
-  return [
-    { label: t("cost.baseFee"), value: `${d.baseFee} lei` },
-    { label: t("cost.distanceOneWay"), value: `${km} km` },
-    {
-      label: d.roundTrip ? t("cost.transportRound") : t("cost.transportOne"),
-      value: d.roundTrip
-        ? `2 × ${km} km × ${d.perKm} lei`
-        : `${km} km × ${d.perKm} lei`,
-    },
-    { label: t("cost.kmCost"), value: `${d.kmCost} lei` },
+/** Breakdown lines for the distance-based delivery price (per trip × trucks). */
+function deliveryRows(c: OrderEstimate, t: T): { label: string; value: string }[] {
+  const d = c.delivery;
+  const cur = c.currency;
+  const rows = [
+    { label: t("cost.loadedDistance"), value: `${d.distanceKm} km` },
+    { label: t("cost.tariffPerTruck"), value: `${d.total} ${cur}` },
   ];
+  // When the volume needs more than one mixer load, show the ×N multiplier.
+  if (c.trucks > 1) {
+    rows.push({
+      label: t("cost.trucks"),
+      value: `${c.trucks} × ${c.truckCapacityM3} m³`,
+    });
+  }
+  return rows;
 }
 
 function legName(name: string, t: T): string {
   if (name === "Camion") return t("word.truck");
   if (name === "Client") return t("word.client");
-  return name;
+  // Any other endpoint is the plant — shown generically, never by real name.
+  return t("map.stationLabel");
 }
 
-export default function MapView({ stations }: { stations: ConcreteStation[] }) {
+export default function MapView({
+  stations,
+  initialClient,
+}: {
+  stations: MapStation[];
+  /** District pages pass the locality centroid so the calculator opens on it. */
+  initialClient?: LatLng;
+}) {
   const { t } = useI18n();
-  const [client, setClient] = useState<LatLng | null>(null);
+  const [client, setClient] = useState<LatLng | null>(initialClient ?? null);
   const [usedFallback, setUsedFallback] = useState(false);
   const [gradeId, setGradeId] = useState(DEFAULT_GRADE_ID);
   const [volume, setVolume] = useState(DEFAULT_VOLUME_M3);
@@ -73,7 +81,8 @@ export default function MapView({ stations }: { stations: ConcreteStation[] }) {
       const res = await fetch("/api/plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ client: point, truck: TRUCK_HOME, gradeId: gId, volume: vol }),
+        // No truck leg: route/delivery are the loaded leg (station -> client) only.
+        body: JSON.stringify({ client: point, gradeId: gId, volume: vol }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error");
@@ -88,6 +97,8 @@ export default function MapView({ stations }: { stations: ConcreteStation[] }) {
 
   // La intrarea pe pagină: cere locația. Dacă refuză/eșuează → Ialoveni.
   useEffect(() => {
+    // District pages open on the locality centroid — don't override with geolocation.
+    if (initialClient) return;
     if (!navigator.geolocation) {
       setUsedFallback(true);
       setClient(FALLBACK_CLIENT);
@@ -104,7 +115,7 @@ export default function MapView({ stations }: { stations: ConcreteStation[] }) {
       },
       { enableHighAccuracy: true, timeout: 8000 },
     );
-  }, []);
+  }, [initialClient]);
 
   // Recalculează la schimbarea locației, mărcii sau volumului.
   useEffect(() => {
@@ -130,19 +141,19 @@ export default function MapView({ stations }: { stations: ConcreteStation[] }) {
     <div className="app">
       <div className="app__map">
         <LeafletMap
-          center={DEFAULT_CENTER}
-          zoom={DEFAULT_ZOOM}
+          center={initialClient ? [initialClient.lat, initialClient.lng] : DEFAULT_CENTER}
+          zoom={initialClient ? 12 : DEFAULT_ZOOM}
           stations={stations}
           client={client}
-          truck={TRUCK_HOME}
           chosenStationId={plan?.station.id}
+          stationLabel={t("map.stationLabel")}
           geometry={plan?.geometry}
           onMapClick={handleMapClick}
         />
         {plan ? (
           <button className="map-pill" onClick={scrollToCalc}>
             <span className="map-pill__price">
-              {t("pill.transportTo", { price: plan.cost.delivery.total })}
+              {t("pill.transportTo", { price: plan.cost.deliveryTotal })}
             </span>
             <span className="map-pill__hint">{t("pill.tap")} ↓</span>
           </button>
@@ -150,6 +161,8 @@ export default function MapView({ stations }: { stations: ConcreteStation[] }) {
       </div>
 
       <aside id="calculator" className="app__panel">
+        <div className="panel__grid">
+        <div className="panel__col">
         <p style={{ color: "var(--muted)", fontSize: 13.5, lineHeight: 1.6, margin: "0 0 18px" }}>
           {t("hero.intro")}
         </p>
@@ -221,7 +234,7 @@ export default function MapView({ stations }: { stations: ConcreteStation[] }) {
                   {g.label}
                 </span>
                 <span style={{ color: "var(--muted)", fontSize: 13 }}>
-                  {clientPricePerM3(g)} {t("calc.perM3")}
+                  {plan?.gradePrices?.[g.id] ?? DEFAULT_PRICES[g.id]} {t("calc.perM3")}
                 </span>
               </button>
             );
@@ -247,7 +260,9 @@ export default function MapView({ stations }: { stations: ConcreteStation[] }) {
         {error ? (
           <p style={{ color: "var(--danger)", fontSize: 13, marginTop: 18 }}>{error}</p>
         ) : null}
+        </div>
 
+        <div className="panel__col">
         {plan ? (
           <div style={{ marginTop: 22, fontSize: 14 }}>
             <div
@@ -283,19 +298,23 @@ export default function MapView({ stations }: { stations: ConcreteStation[] }) {
                   fontSize: 13.5,
                 }}
               >
+                {plan.cost.gradeId ? (
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ color: "var(--muted)" }}>
+                      {t("cost.concrete")} ({plan.cost.gradeLabel})
+                    </span>
+                    <span style={{ fontWeight: 700 }}>
+                      {plan.cost.concreteTotal} {plan.cost.currency}
+                    </span>
+                  </div>
+                ) : null}
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ color: "var(--muted)" }}>
-                    {t("cost.concrete")}
-                    {plan.cost.gradeLabel ? ` (${plan.cost.gradeLabel})` : ""}
+                    {t("cost.delivery")}
+                    {plan.cost.trucks > 1 ? ` (${plan.cost.trucks} ${t("cost.trucksWord")})` : ""}
                   </span>
                   <span style={{ fontWeight: 700 }}>
-                    {plan.cost.concreteTotal} {plan.cost.currency}
-                  </span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: "var(--muted)" }}>{t("cost.transport")}</span>
-                  <span style={{ fontWeight: 700 }}>
-                    {plan.cost.delivery.total} {plan.cost.currency}
+                    {plan.cost.deliveryTotal} {plan.cost.currency}
                   </span>
                 </div>
               </div>
@@ -304,11 +323,13 @@ export default function MapView({ stations }: { stations: ConcreteStation[] }) {
             {/* Beton */}
             <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
               {plan.cost.gradeId ? (
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                   <span style={{ color: "var(--muted)" }}>
-                    {t("cost.concrete")} {plan.cost.gradeLabel} ({plan.cost.volume} m³ × {plan.cost.pricePerM3} lei)
+                    {t("cost.concrete")} {plan.cost.gradeLabel}
+                    <br />
+                    {plan.cost.volume} m³ × {plan.cost.pricePerM3} lei
                   </span>
-                  <span style={{ fontWeight: 600 }}>{plan.cost.concreteTotal} lei</span>
+                  <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>{plan.cost.concreteTotal} lei</span>
                 </div>
               ) : (
                 <div style={{ color: "var(--muted)" }}>{t("calc.selectHint")}</div>
@@ -317,11 +338,10 @@ export default function MapView({ stations }: { stations: ConcreteStation[] }) {
 
             {/* Livrare */}
             <div style={{ color: "var(--brand-darker)", fontWeight: 600, margin: "0 0 8px" }}>
-              {t("cost.delivery")} (
-              {plan.cost.delivery.zone === "city" ? t("cost.zone.city") : t("cost.zone.outside")})
+              {t("cost.delivery")}
             </div>
             <div style={{ display: "grid", gap: 8 }}>
-              {deliveryRows(plan.cost.delivery, t).map((b, i) => (
+              {deliveryRows(plan.cost, t).map((b, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                   <span style={{ color: "var(--muted)" }}>{b.label}</span>
                   <span style={{ fontWeight: 500 }}>{b.value}</span>
@@ -329,7 +349,7 @@ export default function MapView({ stations }: { stations: ConcreteStation[] }) {
               ))}
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                 <span style={{ color: "var(--muted)" }}>{t("cost.totalDelivery")}</span>
-                <span style={{ fontWeight: 600 }}>{plan.cost.delivery.total} lei</span>
+                <span style={{ fontWeight: 600 }}>{plan.cost.deliveryTotal} {plan.cost.currency}</span>
               </div>
             </div>
 
@@ -340,7 +360,7 @@ export default function MapView({ stations }: { stations: ConcreteStation[] }) {
                 {t("plan.chosenStation")}
               </div>
               <div style={{ color: "var(--brand-darker)", fontWeight: 700 }}>
-                {plan.station.name}
+                {t("map.stationLabel")}
               </div>
             </div>
 
@@ -350,18 +370,27 @@ export default function MapView({ stations }: { stations: ConcreteStation[] }) {
                   {legName(leg.from, t)} → {legName(leg.to, t)}: {fmtKm(leg.distance)} · {fmtMin(leg.duration)}
                 </div>
               ))}
-              <div style={{ marginTop: 4 }}>
-                <strong>
-                  {t("plan.totalRoute")}: {fmtKm(plan.totalDistance)} · {fmtMin(plan.totalDuration)}
-                </strong>
-              </div>
+              {/* Total shown only when there's more than one leg (nothing to sum otherwise). */}
+              {plan.legs.length > 1 ? (
+                <div style={{ marginTop: 4 }}>
+                  <strong>
+                    {t("plan.totalRoute")}: {fmtKm(plan.totalDistance)} · {fmtMin(plan.totalDuration)}
+                  </strong>
+                </div>
+              ) : null}
             </div>
 
             <p style={{ fontSize: 11.5, color: "var(--muted)", lineHeight: 1.5, margin: "18px 0 0" }}>
-              {plan.cost.delivery.zone === "city" ? t("cost.note.city") : t("cost.note.outside")}
+              {t("cost.note")}
             </p>
           </div>
-        ) : null}
+        ) : (
+          <p style={{ color: "var(--muted)", fontSize: 13, lineHeight: 1.6, marginTop: 4 }}>
+            {t("calc.resultPlaceholder")}
+          </p>
+        )}
+        </div>
+        </div>
       </aside>
     </div>
   );

@@ -7,7 +7,7 @@ export default function Intro() {
   return (
     <section className="intro">
       <div className="intro__inner reveal">
-        <h2 className="intro__title">{t("slogan.title")}</h2>
+        <h1 className="intro__title">{t("slogan.title")}</h1>
         <p className="intro__text">{t("slogan.text")}</p>
       </div>
     </section>

@@ -13,6 +13,12 @@ const PATHS: Record<string, string> = {
     '<path d="M14.1 5.55a2 2 0 0 0 1.8 0l3.65-1.83A1 1 0 0 1 21 4.62v12.76a1 1 0 0 1-.55.9l-4.55 2.27a2 2 0 0 1-1.8 0l-4.2-2.1a2 2 0 0 0-1.8 0l-3.65 1.82A1 1 0 0 1 3 19.38V6.62a1 1 0 0 1 .55-.9L8.1 3.45a2 2 0 0 1 1.8 0z"/><path d="M15 5.76v15"/><path d="M9 3.24v15"/>',
   zap: '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
   cube: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+  // sand — a heaped pile with grains on a ground line
+  sand:
+    '<path d="M2 20h20"/><path d="M3.5 20Q12 5 20.5 20"/><path d="M9.5 15h.01"/><path d="M13 16h.01"/><path d="M12 12.5h.01"/>',
+  // gravel — a cluster of pebbles
+  gravel:
+    '<circle cx="7.5" cy="10.5" r="3"/><circle cx="15.5" cy="11.5" r="3.5"/><circle cx="11" cy="17" r="3.2"/>',
 };
 
 export default function Icon({ name, size = 24 }: { name: string; size?: number }) {

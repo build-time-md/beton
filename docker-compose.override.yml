@@ -1,0 +1,11 @@
+# Local dev only: publish ports to the host so you can reach the app/OSRM
+# from your browser. The base docker-compose.yml uses `expose` (network-internal)
+# because it targets Coolify's proxy. Compose merges this file automatically.
+services:
+  osrm:
+    ports:
+      - "5000:5000"
+
+  app:
+    ports:
+      - "3000:3000"

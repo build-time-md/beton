@@ -1,19 +1,29 @@
 "use client";
 
 import { useEffect } from "react";
-import { LanguageProvider } from "@/lib/i18n";
-import type { ConcreteStation } from "@/lib/types";
+import { LanguageProvider, type Lang } from "@/lib/i18n";
+import type { MapStation } from "@/lib/types";
 import Header from "./Header";
 import MapView from "./MapView";
 import Intro from "./sections/Intro";
-import Prices from "./sections/Prices";
+import Materials from "./sections/Materials";
 import HowItWorks from "./sections/HowItWorks";
 import WhyUs from "./sections/WhyUs";
 import Cta from "./sections/Cta";
 import Gallery from "./sections/Gallery";
+import ServiceAreas from "./sections/ServiceAreas";
 import SiteFooter from "./sections/SiteFooter";
 
-export default function SiteApp({ stations }: { stations: ConcreteStation[] }) {
+export default function SiteApp({
+  lang,
+  stations,
+  areas = [],
+}: {
+  lang: Lang;
+  stations: MapStation[];
+  /** District links for the "Zone de livrare" block. */
+  areas?: { name: string; href: string }[];
+}) {
   // Reveal-on-scroll: fade up elements with `.reveal` as they enter view.
   useEffect(() => {
     const els = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
@@ -37,12 +47,13 @@ export default function SiteApp({ stations }: { stations: ConcreteStation[] }) {
   }, []);
 
   return (
-    <LanguageProvider>
+    <LanguageProvider lang={lang}>
       <Header />
       <MapView stations={stations} />
       <Intro />
-      <Prices />
+      <Materials />
       <WhyUs />
+      <ServiceAreas areas={areas} />
       <Gallery />
       <Cta />
       <HowItWorks />

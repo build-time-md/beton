@@ -60,7 +60,7 @@ export default function Gallery() {
           {PHOTOS.map((src, i) => (
             <button key={i} className="gallery__item" onClick={() => setOpen(i)}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" className="gallery__img" loading="lazy" />
+              <img src={src} alt={t("gallery.alt")} className="gallery__img" loading="lazy" />
             </button>
           ))}
         </div>

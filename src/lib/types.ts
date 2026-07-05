@@ -17,6 +17,16 @@ export type ConcreteStation = {
   verified?: boolean;
 };
 
+/**
+ * Minimal, customer-safe station shape sent to the browser — only what the map
+ * needs to draw a pin. Real names/addresses/phones stay server-side.
+ */
+export type MapStation = {
+  id: string;
+  lat: number;
+  lng: number;
+};
+
 /** A single segment of the delivery route, e.g. truck -> station. */
 export type RouteLeg = {
   from: string;
@@ -28,7 +38,9 @@ export type RouteLeg = {
 };
 
 export type DeliveryPlan = {
-  station: ConcreteStation;
+  station: MapStation;
+  /** Chosen plant's grade id -> price/m³ (lei), for the widget's grade list. */
+  gradePrices: Record<string, number>;
   legs: RouteLeg[];
   /** Full route polyline as [lat, lng] pairs, ready for Leaflet. */
   geometry: [number, number][];

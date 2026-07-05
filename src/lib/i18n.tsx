@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect } from "react";
 
 export type Lang = "ro" | "ru" | "en";
 export const LANGS: Lang[] = ["ro", "ru", "en"];
@@ -27,9 +27,17 @@ const ro: Dict = {
   "calc.grade": "Marca betonului",
   "calc.volume": "Volum (m³)",
   "calc.selectHint": "Selectează marca betonului și volumul pentru prețul betonului.",
+  "calc.resultPlaceholder": "Alege locația (butonul de mai sus sau un click pe hartă) ca să vezi prețul.",
   "calc.perM3": "lei/m³",
 
   "cost.total": "Cost total estimat",
+  "cost.loadedDistance": "Distanță stație → client",
+  "cost.tariff": "Tarif (după distanță)",
+  "cost.tariffPerTruck": "Tarif / mașină",
+  "cost.trucks": "Mașini necesare",
+  "cost.trucksWord": "mașini",
+  "cost.over20": "Peste 20 km",
+  "cost.note": "Estimare: beton (marcă × volum) + livrare (fixă, după distanța de la stație până la tine). Fără TVA.",
   "cost.concrete": "Beton",
   "cost.transport": "Transport",
   "cost.delivery": "Livrare",
@@ -45,17 +53,28 @@ const ro: Dict = {
   "cost.note.outside": "Estimare în afara orașului (taxă de bază + preț pe km de la bază), fără preț beton și fără TVA.",
 
   "plan.chosenStation": "Stație aleasă",
+  "map.stationLabel": "Stație beton",
+
+  "district.deliveryFrom": "Livrare de la",
+  "district.calcCta": "Calculează prețul exact",
+  "district.faqHeading": "Întrebări frecvente",
+  "district.nearbyHeading": "Livrăm și în localitățile vecine",
+  "district.deliveryIn": "Livrare beton în",
+  "areas.title": "Zone de livrare",
+  "areas.subtitle": "Livrăm beton, nisip și pietriș în Chișinău și localitățile din jur — alege zona ta.",
   "plan.totalRoute": "Total drum",
   "word.truck": "Camion",
   "word.client": "Client",
 
-  "pill.transportTo": "Transport până la tine: ~{price} lei",
+  "pill.transportTo": "Preț livrare: ~{price} lei",
   "pill.tap": "atinge pentru detalii",
 
-  "prices.title": "Prețuri beton",
+  "prices.title": "Prețuri livrare",
   "prices.grade": "Marca",
+  "prices.distance": "Distanță (stație → tine)",
   "prices.price": "Preț",
-  "prices.note": "Prețurile includ betonul livrat; transportul se calculează separat în funcție de distanță.",
+  "prices.note": "Preț per livrare (autobetonieră), în funcție de distanța de la stație până la tine. Marca și volumul nu schimbă prețul afișat. Fără TVA.",
+  "prices.gradeGuide": "Ghid mărci beton",
   "prices.useCol": "Pentru ce",
   "prices.popular": "Populară",
   "grade.M150.use": "Egalizări, straturi de pregătire, umpluturi.",
@@ -69,7 +88,7 @@ const ro: Dict = {
   "how.s1.t": "Alegi locația",
   "how.s1.d": "Pe hartă, automat sau cu un click.",
   "how.s2.t": "Vezi prețul",
-  "how.s2.d": "Beton + transport, instant.",
+  "how.s2.d": "Preț după distanță, instant.",
   "how.s3.t": "Ne suni",
   "how.s3.d": "Confirmăm și livrăm.",
 
@@ -82,10 +101,19 @@ const ro: Dict = {
   "why.coverage.t": "Acoperire largă",
   "why.coverage.d": "Acoperim Chișinăul și suburbiile, alegând automat cea mai apropiată stație ca să reducem timpul și costul transportului.",
   "why.fast.t": "Preț pe loc",
-  "why.fast.d": "Vezi prețul estimat direct pe hartă, fără telefoane — transparent, în funcție de marcă, volum și distanță.",
+  "why.fast.d": "Vezi prețul estimat direct pe hartă, fără telefoane — transparent, în funcție de distanță.",
+
+  "mat.title": "Nu doar beton",
+  "mat.subtitle": "Cu aceeași flotă îți aducem și nisip, și pietriș — pentru fundații, betoane și amenajări.",
+  "mat.sand.t": "Nisip",
+  "mat.sand.d": "Nisip de râu și de carieră, spălat — pentru betoane, mortare și tencuieli.",
+  "mat.gravel.t": "Pietriș",
+  "mat.gravel.d": "Pietriș și piatră spartă, în diverse fracții — pentru fundații, drenaj și betoane.",
+  "mat.note": "Nisipul și pietrișul se comandă telefonic. Sună-ne pentru preț și disponibilitate:",
 
   "gallery.title": "Galerie",
-  "slogan.title": "Livrăm din cel mai apropiat punct de tine, pentru un preț cât mai mic",
+  "gallery.alt": "Autobetonieră DARSAN — livrare beton în Chișinău",
+  "slogan.title": "Livrăm beton din cel mai apropiat punct de tine, pentru un preț cât mai mic",
   "slogan.text": "Harta alege automat cea mai apropiată stație de betoane, ca tu să plătești cât mai puțin pe transport.",
   "prices.kicker": "Tarife",
   "how.kicker": "Simplu",
@@ -121,9 +149,17 @@ const ru: Dict = {
   "calc.grade": "Марка бетона",
   "calc.volume": "Объём (м³)",
   "calc.selectHint": "Выберите марку бетона и объём для расчёта стоимости бетона.",
+  "calc.resultPlaceholder": "Выберите адрес (кнопка выше или клик по карте), чтобы увидеть цену.",
   "calc.perM3": "лей/м³",
 
   "cost.total": "Итоговая оценка",
+  "cost.loadedDistance": "Расстояние завод → клиент",
+  "cost.tariff": "Тариф (по расстоянию)",
+  "cost.tariffPerTruck": "Тариф / машина",
+  "cost.trucks": "Нужно машин",
+  "cost.trucksWord": "машин",
+  "cost.over20": "Свыше 20 км",
+  "cost.note": "Оценка: бетон (марка × объём) + доставка (фиксированная, по расстоянию от завода до вас). Без НДС.",
   "cost.concrete": "Бетон",
   "cost.transport": "Доставка",
   "cost.delivery": "Доставка",
@@ -139,17 +175,28 @@ const ru: Dict = {
   "cost.note.outside": "Оценка за городом (базовый тариф + цена за км от базы), без цены бетона и без НДС.",
 
   "plan.chosenStation": "Выбранный завод",
+  "map.stationLabel": "Бетонный узел",
+
+  "district.deliveryFrom": "Доставка от",
+  "district.calcCta": "Рассчитать точную цену",
+  "district.faqHeading": "Частые вопросы",
+  "district.nearbyHeading": "Доставляем и в соседние населённые пункты",
+  "district.deliveryIn": "Доставка бетона в",
+  "areas.title": "Зоны доставки",
+  "areas.subtitle": "Доставляем бетон, песок и щебень по Кишинёву и окрестным населённым пунктам — выберите свой район.",
   "plan.totalRoute": "Весь маршрут",
   "word.truck": "Машина",
   "word.client": "Клиент",
 
-  "pill.transportTo": "Доставка к вам: ~{price} лей",
+  "pill.transportTo": "Цена доставки: ~{price} лей",
   "pill.tap": "нажмите для деталей",
 
-  "prices.title": "Цены на бетон",
+  "prices.title": "Цены на доставку",
   "prices.grade": "Марка",
+  "prices.distance": "Расстояние (завод → вы)",
   "prices.price": "Цена",
-  "prices.note": "Цены указаны за доставленный бетон; доставка рассчитывается отдельно по расстоянию.",
+  "prices.note": "Цена за доставку (автобетоносмеситель), в зависимости от расстояния от завода до вас. Марка и объём не меняют указанную цену. Без НДС.",
+  "prices.gradeGuide": "Гид по маркам бетона",
   "prices.useCol": "Применение",
   "prices.popular": "Популярная",
   "grade.M150.use": "Выравнивание, подготовительные слои, заполнение.",
@@ -163,7 +210,7 @@ const ru: Dict = {
   "how.s1.t": "Выберите адрес",
   "how.s1.d": "На карте, авто или кликом.",
   "how.s2.t": "Узнайте цену",
-  "how.s2.d": "Бетон + доставка, мгновенно.",
+  "how.s2.d": "Цена по расстоянию, мгновенно.",
   "how.s3.t": "Позвоните",
   "how.s3.d": "Подтверждаем и доставляем.",
 
@@ -176,10 +223,19 @@ const ru: Dict = {
   "why.coverage.t": "Широкий охват",
   "why.coverage.d": "Охватываем Кишинёв и пригороды, автоматически выбирая ближайший узел, чтобы снизить время и стоимость доставки.",
   "why.fast.t": "Цена сразу",
-  "why.fast.d": "Цену вы видите прямо на карте, без звонков — прозрачно, в зависимости от марки, объёма и расстояния.",
+  "why.fast.d": "Цену вы видите прямо на карте, без звонков — прозрачно, в зависимости от расстояния.",
+
+  "mat.title": "Не только бетон",
+  "mat.subtitle": "Той же техникой привезём вам и песок, и щебень — для фундаментов, бетона и благоустройства.",
+  "mat.sand.t": "Песок",
+  "mat.sand.d": "Речной и карьерный песок, мытый — для бетона, растворов и штукатурки.",
+  "mat.gravel.t": "Щебень",
+  "mat.gravel.d": "Щебень и гравий разных фракций — для фундаментов, дренажа и бетона.",
+  "mat.note": "Песок и щебень заказываются по телефону. Звоните для уточнения цены и наличия:",
 
   "gallery.title": "Галерея",
-  "slogan.title": "Доставляем с ближайшей к вам точки — по минимальной цене",
+  "gallery.alt": "Автобетоносмеситель DARSAN — доставка бетона в Кишинёве",
+  "slogan.title": "Доставляем бетон с ближайшей к вам точки — по минимальной цене",
   "slogan.text": "Карта автоматически выбирает ближайший бетонный узел, чтобы вы меньше платили за доставку.",
   "prices.kicker": "Тарифы",
   "how.kicker": "Просто",
@@ -215,9 +271,17 @@ const en: Dict = {
   "calc.grade": "Concrete grade",
   "calc.volume": "Volume (m³)",
   "calc.selectHint": "Select a concrete grade and volume to see the concrete price.",
+  "calc.resultPlaceholder": "Pick a location (the button above or a click on the map) to see the price.",
   "calc.perM3": "lei/m³",
 
   "cost.total": "Estimated total",
+  "cost.loadedDistance": "Plant → client distance",
+  "cost.tariff": "Tariff (by distance)",
+  "cost.tariffPerTruck": "Tariff / truck",
+  "cost.trucks": "Trucks needed",
+  "cost.trucksWord": "trucks",
+  "cost.over20": "Over 20 km",
+  "cost.note": "Estimate: concrete (grade × volume) + delivery (flat, by distance from the plant to you). VAT excluded.",
   "cost.concrete": "Concrete",
   "cost.transport": "Delivery",
   "cost.delivery": "Delivery",
@@ -233,17 +297,28 @@ const en: Dict = {
   "cost.note.outside": "Out-of-town estimate (base fee + per-km from base), concrete price and VAT excluded.",
 
   "plan.chosenStation": "Chosen plant",
+  "map.stationLabel": "Concrete plant",
+
+  "district.deliveryFrom": "Delivery from",
+  "district.calcCta": "Calculate the exact price",
+  "district.faqHeading": "Frequently asked questions",
+  "district.nearbyHeading": "We also deliver to nearby localities",
+  "district.deliveryIn": "Concrete delivery in",
+  "areas.title": "Delivery areas",
+  "areas.subtitle": "We deliver concrete, sand and gravel across Chișinău and the surrounding localities — pick your area.",
   "plan.totalRoute": "Total route",
   "word.truck": "Truck",
   "word.client": "Client",
 
-  "pill.transportTo": "Delivery to you: ~{price} lei",
+  "pill.transportTo": "Delivery price: ~{price} lei",
   "pill.tap": "tap for details",
 
-  "prices.title": "Concrete prices",
+  "prices.title": "Delivery prices",
   "prices.grade": "Grade",
+  "prices.distance": "Distance (plant → you)",
   "prices.price": "Price",
-  "prices.note": "Prices are for delivered concrete; transport is calculated separately by distance.",
+  "prices.note": "Price per delivery (mixer truck), based on the distance from the plant to you. Grade and volume don't change the shown price. VAT excluded.",
+  "prices.gradeGuide": "Concrete grade guide",
   "prices.useCol": "Used for",
   "prices.popular": "Popular",
   "grade.M150.use": "Leveling, blinding layers, fill.",
@@ -257,7 +332,7 @@ const en: Dict = {
   "how.s1.t": "Pick a location",
   "how.s1.d": "On the map, automatically or by click.",
   "how.s2.t": "See the price",
-  "how.s2.d": "Concrete + delivery, instantly.",
+  "how.s2.d": "Price by distance, instantly.",
   "how.s3.t": "Call us",
   "how.s3.d": "We confirm and deliver.",
 
@@ -270,10 +345,19 @@ const en: Dict = {
   "why.coverage.t": "Wide coverage",
   "why.coverage.d": "We cover Chișinău and its suburbs, automatically picking the nearest plant to cut delivery time and cost.",
   "why.fast.t": "Instant price",
-  "why.fast.d": "You see the estimated price right on the map, no calls — transparent, based on grade, volume and distance.",
+  "why.fast.d": "You see the estimated price right on the map, no calls — transparent, based on distance.",
+
+  "mat.title": "Not just concrete",
+  "mat.subtitle": "The same fleet brings you sand and gravel too — for foundations, concrete and landscaping.",
+  "mat.sand.t": "Sand",
+  "mat.sand.d": "River and quarry sand, washed — for concrete, mortars and plaster.",
+  "mat.gravel.t": "Gravel",
+  "mat.gravel.d": "Gravel and crushed stone in various fractions — for foundations, drainage and concrete.",
+  "mat.note": "Sand and gravel are ordered by phone. Call us for price and availability:",
 
   "gallery.title": "Gallery",
-  "slogan.title": "We deliver from the point nearest you, at the lowest price",
+  "gallery.alt": "DARSAN concrete mixer truck — concrete delivery in Chișinău",
+  "slogan.title": "We deliver concrete from the point nearest you, at the lowest price",
   "slogan.text": "The map automatically picks the nearest concrete plant so you pay less for transport.",
   "prices.kicker": "Pricing",
   "how.kicker": "Simple",
@@ -304,25 +388,23 @@ export function translate(
 
 type Ctx = {
   lang: Lang;
-  setLang: (l: Lang) => void;
   t: (key: string, vars?: Record<string, string | number>) => string;
 };
 
 const LangContext = createContext<Ctx | null>(null);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("ro");
-
+export function LanguageProvider({
+  lang,
+  children,
+}: {
+  lang: Lang;
+  children: React.ReactNode;
+}) {
+  // The URL is the source of truth for language (ro at /, ru at /ru, en at /en).
+  // Keep the <html lang> attribute in sync on the client for a11y/SEO.
   useEffect(() => {
-    const saved = window.localStorage.getItem("lang") as Lang | null;
-    if (saved && LANGS.includes(saved)) setLangState(saved);
-  }, []);
-
-  const setLang = useCallback((l: Lang) => {
-    setLangState(l);
-    window.localStorage.setItem("lang", l);
-    document.documentElement.lang = l;
-  }, []);
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const t = useCallback(
     (key: string, vars?: Record<string, string | number>) =>
@@ -331,9 +413,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <LangContext.Provider value={{ lang, setLang, t }}>
-      {children}
-    </LangContext.Provider>
+    <LangContext.Provider value={{ lang, t }}>{children}</LangContext.Provider>
   );
 }
 
