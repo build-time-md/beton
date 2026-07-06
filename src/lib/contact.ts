@@ -8,9 +8,8 @@ export const CONTACT = {
   /** Display + tel: href. Keep digits only in `phoneDigits`. */
   phone: "+373 692 44 506",
   phoneDigits: "37369244506",
-  /** WhatsApp / Viber number, digits only, no +. */
+  /** WhatsApp number, digits only, no +. */
   whatsapp: "37369244506",
-  viber: "37369244506",
   email: "contact@beton.md",
 
   /** Physical base address — completează pentru SEO local (apare în Google). */
@@ -32,4 +31,3 @@ export function whatsappHref(text?: string) {
   const q = text ? `?text=${encodeURIComponent(text)}` : "";
   return `https://wa.me/${CONTACT.whatsapp}${q}`;
 }
-export const viberHref = `viber://chat?number=%2B${CONTACT.viber}`;

@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { headers } from "next/headers";
 import "./globals.css";
-import { SITE_URL, localBusinessSchema } from "@/lib/seo";
+import { SITE_URL } from "@/lib/seo";
 
 // metadataBase makes canonical/hreflang/OG URLs absolute. Per-page (ro/ru/en)
 // title, description, canonical and language alternates come from metadataFor().
@@ -18,22 +17,16 @@ export const viewport: Viewport = {
   themeColor: "#3FA535",
 };
 
-export default async function RootLayout({
+// Static lang default (keeps every route fully static / SSG). The ru/en locale
+// layouts correct document.documentElement.lang via LocaleChrome before paint.
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Locale is set per request by middleware (x-locale header).
-  const locale = (await headers()).get("x-locale") ?? "ro";
   return (
-    <html lang={locale}>
-      <body>
-        {children}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema()) }}
-        />
-      </body>
+    <html lang="ro">
+      <body>{children}</body>
     </html>
   );
 }

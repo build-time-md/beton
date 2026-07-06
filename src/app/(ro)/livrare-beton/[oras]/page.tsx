@@ -46,7 +46,9 @@ export default async function Page({ params }: { params: Promise<{ oras: string 
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(props.content.faq)) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqSchema(props.content.faq, props.estimate)),
+        }}
       />
     </>
   );

@@ -36,7 +36,7 @@ export const PRICING = {
   truckCapacityM3: 8,
 } as const;
 
-export type DeliveryQuote = {
+type DeliveryQuote = {
   currency: string;
   /** one-way plant -> client road distance. */
   distanceMeters: number;

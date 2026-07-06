@@ -28,7 +28,7 @@ export type MapStation = {
 };
 
 /** A single segment of the delivery route, e.g. truck -> station. */
-export type RouteLeg = {
+type RouteLeg = {
   from: string;
   to: string;
   /** meters */

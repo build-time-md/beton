@@ -29,7 +29,7 @@ export const DEFAULT_PRICES: Record<string, number> = {
 };
 
 /** …except plants that have their own price list, keyed by station id. */
-export const STATION_PRICES: Record<string, Record<string, number>> = {
+const STATION_PRICES: Record<string, Record<string, number>> = {
   "concrete-alliance": {
     M150: 1550,
     M200: 1650,

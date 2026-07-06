@@ -15,15 +15,22 @@ services:
     image: alpine:3.20
     volumes:
       - osrm_data:/data
+    # Atomic download: write to a temp name and rename only on success, so a
+    # partial download can never pass the `test -f` check on the next boot.
     command: >
       sh -c "test -f /data/moldova-latest.osm.pbf ||
-      wget -O /data/moldova-latest.osm.pbf
-      https://download.geofabrik.de/europe/moldova-latest.osm.pbf"
+      (wget -O /data/.download.osm.pbf
+      https://download.geofabrik.de/europe/moldova-latest.osm.pbf &&
+      mv /data/.download.osm.pbf /data/moldova-latest.osm.pbf)"
     restart: "no"
 
   # 2) Build the routing graph once, then serve it.
+  # Pinned by digest (osrm-routed v26.7.2): a newer osrm-backend may not load a
+  # graph built by an older one, so :latest could crash-loop on redeploy. When
+  # bumping the image, also bump the ready-marker suffix below so the graph is
+  # deliberately rebuilt instead of crashing.
   osrm:
-    image: ghcr.io/project-osrm/osrm-backend:latest
+    image: ghcr.io/project-osrm/osrm-backend@sha256:f31f80901025621677f2281e0f09d8cca95c6ebe6c834d19e4f2a427022d6d56
     depends_on:
       osrm-data:
         condition: service_completed_successfully
@@ -31,11 +38,11 @@ services:
       - osrm_data:/data
     command: >
       sh -c "set -e; cd /data;
-      if [ ! -f .ready ]; then
+      if [ ! -f .ready-f31f8090 ]; then
         osrm-extract -p /opt/car.lua moldova-latest.osm.pbf &&
         osrm-partition moldova-latest.osrm &&
         osrm-customize moldova-latest.osrm &&
-        touch .ready;
+        touch .ready-f31f8090;
       fi;
       exec osrm-routed --algorithm mld moldova-latest.osrm"
     expose:
@@ -44,7 +51,13 @@ services:
 
   # 3) The website. Coolify routes your domain to this service (port 3000).
   app:
-    build: .
+    build:
+      context: .
+      args:
+        # Set NEXT_PUBLIC_SITE_URL in Coolify's environment (as a build variable) to
+        # the real production domain — it is baked into the build (canonicals,
+        # hreflang, sitemap, JSON-LD) and cannot be changed at runtime.
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://beton.build-time.net}
     depends_on:
       - osrm
     environment:

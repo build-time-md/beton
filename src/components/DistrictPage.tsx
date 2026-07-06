@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { LanguageProvider, useI18n, type Lang } from "@/lib/i18n";
+import { fillTokens } from "@/lib/fill-tokens";
 import type { DistrictContent } from "@/data/districts";
 import type { LatLng, MapStation } from "@/lib/types";
 import Header from "./Header";
@@ -57,30 +58,21 @@ function DistrictBody({ content, center, estimate, stations, nearby, langHrefs }
   }, []);
 
   // Keep the prose in sync with the live estimate.
-  const fill = (s: string) =>
-    s.replaceAll("{km}", String(estimate.km)).replaceAll("{price}", String(estimate.price));
+  const fill = (s: string) => fillTokens(s, estimate);
   const paras = (body: string) => fill(body).split("\n\n");
 
   return (
     <>
       <Header langHrefs={langHrefs} />
 
+      <MapView stations={stations} initialClient={center} />
+
       <section className="dhero">
         <div className="dhero__inner reveal">
           <h1 className="dhero__title">{content.h1}</h1>
           <p className="dhero__intro">{fill(content.intro)}</p>
-          <div className="dhero__meta">
-            <span className="dhero__chip">
-              {t("district.deliveryFrom")} {estimate.price} lei · ~{estimate.km} km
-            </span>
-            <a href="#calculator" className="btn btn--brand dhero__cta">
-              {t("district.calcCta")} ↓
-            </a>
-          </div>
         </div>
       </section>
-
-      <MapView stations={stations} initialClient={center} />
 
       <section className="dsection">
         <div className="dsection__inner reveal">
@@ -104,6 +96,8 @@ function DistrictBody({ content, center, estimate, stations, nearby, langHrefs }
         </div>
       </section>
 
+      <Cta />
+
       <section className="dfaq">
         <div className="dfaq__inner reveal">
           <h2 className="dsection__title">{t("district.faqHeading")}</h2>
@@ -122,7 +116,7 @@ function DistrictBody({ content, center, estimate, stations, nearby, langHrefs }
 
       {nearby.length ? (
         <section className="dsection dsection--alt">
-          <div className="dsection__inner reveal">
+          <div className="dsection__inner dsection__inner--wide reveal">
             <h2 className="dsection__title">{t("district.nearbyHeading")}</h2>
             <div className="d-nearby">
               {nearby.map((n) => (
@@ -135,7 +129,6 @@ function DistrictBody({ content, center, estimate, stations, nearby, langHrefs }
         </section>
       ) : null}
 
-      <Cta />
       <SiteFooter />
     </>
   );

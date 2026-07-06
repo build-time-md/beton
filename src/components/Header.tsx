@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useI18n, LANGS, type Lang } from "@/lib/i18n";
 import { LOCALE_PATH } from "@/lib/seo";
 import { CONTACT, telHref } from "@/lib/contact";
-import BrandMark from "./BrandMark";
 import Icon from "./Icon";
 
 const NAV = [
@@ -36,7 +35,6 @@ export default function Header({
   return (
     <header className="site-header">
       <Link href={home} className="site-header__brand" style={{ textDecoration: "none", color: "inherit" }}>
-        <BrandMark size={32} />
         <span style={{ fontWeight: 800, fontSize: 17 }}>{CONTACT.companyName}</span>
       </Link>
 

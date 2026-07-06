@@ -53,10 +53,10 @@ export default function SiteApp({
       <Intro />
       <Materials />
       <WhyUs />
-      <ServiceAreas areas={areas} />
       <Gallery />
       <Cta />
       <HowItWorks />
+      <ServiceAreas areas={areas} />
       <SiteFooter />
     </LanguageProvider>
   );
