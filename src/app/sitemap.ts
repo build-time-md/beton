@@ -16,7 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly",
     priority: lang === "ro" ? 1 : 0.8,
     alternates: {
-      languages: { ro: abs("/"), ru: abs("/ru"), en: abs("/en"), "x-default": abs("/") },
+      languages: { ro: abs("/"), ru: abs("/ru"), en: abs("/en") },
     },
   }));
 
@@ -31,7 +31,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
           ro: abs(districtPath("ro", d.slug)),
           ru: abs(districtPath("ru", d.slug)),
           en: abs(districtPath("en", d.slug)),
-          "x-default": abs(districtPath("ro", d.slug)),
         },
       },
     })),

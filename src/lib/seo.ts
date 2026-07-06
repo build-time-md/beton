@@ -14,12 +14,11 @@ export const LOCALE_PATH: Record<Lang, string> = {
   en: "/en",
 };
 
-/** hreflang alternates — same for every page (+ x-default → ro). */
+/** hreflang alternates — same for every page. */
 const LANGUAGE_ALTERNATES = {
   ro: "/",
   ru: "/ru",
   en: "/en",
-  "x-default": "/",
 };
 
 /** Keyword prefix folder per locale for district landing pages. */
@@ -154,7 +153,6 @@ export function metadataForDistrict(lang: Lang, d: District): Metadata {
     ro: districtPath("ro", d.slug),
     ru: districtPath("ru", d.slug),
     en: districtPath("en", d.slug),
-    "x-default": districtPath("ro", d.slug),
   };
   return {
     title: c.title,
