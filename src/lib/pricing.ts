@@ -14,7 +14,7 @@ import type { ConcreteGrade } from "./concrete";
  *   5–10 km ........... 1600
  *   10–15 km .......... 1700
  *   15–20 km .......... 1800
- *   > 20 km ........... 1800 + 85 × each started km over 20
+ *   > 20 km ........... 1800 + 80 × each started km over 20
  *
  * One mixer carries at most `truckCapacityM3`; a larger order needs several
  * trips, so the delivery is multiplied by the number of trucks needed.
@@ -31,7 +31,7 @@ export const PRICING = {
   /** Beyond the last band: this base + perKmOver × each started km over `overFromKm`. */
   overFromKm: 20,
   overBasePrice: 1800,
-  perKmOver: 85,
+  perKmOver: 80,
   /** Max concrete one mixer truck carries per load (m³). Tune to the real fleet. */
   truckCapacityM3: 8,
 } as const;
@@ -47,7 +47,7 @@ type DeliveryQuote = {
   basePrice: number;
   /** whole km beyond `overFromKm` (0 when within 20 km). */
   overKm: number;
-  /** lei per km over the limit (85). */
+  /** lei per km over the limit (80). */
   perKmOver: number;
   /** overKm × perKmOver (0 when within 20 km). */
   overCost: number;
