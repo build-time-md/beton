@@ -1,9 +1,10 @@
 "use client";
 
 import { useI18n } from "@/lib/i18n";
-import { CONTACT, telHref } from "@/lib/contact";
+import { CONTACT } from "@/lib/contact";
 import BrandMark from "@/components/BrandMark";
 import Icon from "@/components/Icon";
+import PhoneLink from "@/components/PhoneLink";
 
 export default function SiteFooter() {
   const { t } = useI18n();
@@ -20,13 +21,12 @@ export default function SiteFooter() {
 
         <div>
           <div className="site-footer__label">{t("footer.contact")}</div>
-          <a
-            href={telHref}
+          <PhoneLink
             className="site-footer__link"
             style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
           >
             <Icon name="phone" size={15} /> {CONTACT.phone}
-          </a>
+          </PhoneLink>
         </div>
 
         <div>

@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useI18n, LANGS, type Lang } from "@/lib/i18n";
 import { LOCALE_PATH } from "@/lib/seo";
-import { CONTACT, telHref } from "@/lib/contact";
+import { CONTACT } from "@/lib/contact";
 import Icon from "./Icon";
+import PhoneLink from "./PhoneLink";
 
 const NAV = [
   { id: "how", key: "nav.how" },
@@ -59,9 +60,9 @@ export default function Header({
             </Link>
           ))}
         </div>
-        <a href={telHref} className="btn btn--brand">
+        <PhoneLink className="btn btn--brand">
           <Icon name="phone" size={16} /> {CONTACT.phone}
-        </a>
+        </PhoneLink>
       </div>
     </header>
   );

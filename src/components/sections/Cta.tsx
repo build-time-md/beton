@@ -1,8 +1,9 @@
 "use client";
 
 import { useI18n } from "@/lib/i18n";
-import { CONTACT, telHref } from "@/lib/contact";
+import { CONTACT } from "@/lib/contact";
 import Icon from "../Icon";
+import PhoneLink from "../PhoneLink";
 
 export default function Cta() {
   const { t } = useI18n();
@@ -14,9 +15,9 @@ export default function Cta() {
           <div className="cta__text">{t("cta.text")}</div>
         </div>
         <div className="cta__actions">
-          <a href={telHref} className="cta__btn cta__btn--solid">
+          <PhoneLink className="cta__btn cta__btn--solid">
             <Icon name="phone" size={18} /> {CONTACT.phone}
-          </a>
+          </PhoneLink>
         </div>
       </div>
     </section>

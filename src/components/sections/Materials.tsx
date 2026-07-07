@@ -1,8 +1,9 @@
 "use client";
 
 import { useI18n } from "@/lib/i18n";
-import { CONTACT, telHref } from "@/lib/contact";
+import { CONTACT } from "@/lib/contact";
 import Icon from "../Icon";
+import PhoneLink from "../PhoneLink";
 import SectionHead from "../SectionHead";
 
 // Drop real photos in /public/materials and keep these paths.
@@ -47,9 +48,9 @@ export default function Materials() {
 
         <p className="materials-note">
           {t("mat.note")}{" "}
-          <a href={telHref} className="materials-note__phone">
+          <PhoneLink className="materials-note__phone">
             {CONTACT.phone}
-          </a>
+          </PhoneLink>
         </p>
       </div>
     </section>
