@@ -6,6 +6,7 @@ import type { MapStation, DeliveryPlan, LatLng } from "@/lib/types";
 import type { OrderEstimate } from "@/lib/pricing";
 import { GRADES, DEFAULT_GRADE_ID, DEFAULT_VOLUME_M3, DEFAULT_PRICES } from "@/lib/concrete";
 import { useI18n } from "@/lib/i18n";
+import LocationSearch from "./LocationSearch";
 
 // Leaflet touches `window`, so the map must render client-side only.
 const LeafletMap = dynamic(() => import("./LeafletMap"), {
@@ -62,6 +63,11 @@ export default function MapView({
 }) {
   const { t } = useI18n();
   const [client, setClient] = useState<LatLng | null>(initialClient ?? null);
+  // Human-readable name for the chosen point (from search); null → show coords.
+  const [clientLabel, setClientLabel] = useState<string | null>(null);
+  // Bumped when the location is set from outside the search (map click / geo),
+  // signalling the search box to clear its now-stale text.
+  const [searchClearToken, setSearchClearToken] = useState(0);
   const [usedFallback, setUsedFallback] = useState(false);
   const [gradeId, setGradeId] = useState(DEFAULT_GRADE_ID);
   const [volume, setVolume] = useState(DEFAULT_VOLUME_M3);
@@ -71,6 +77,15 @@ export default function MapView({
 
   function handleMapClick(p: LatLng) {
     setUsedFallback(false);
+    setClientLabel(null);
+    setSearchClearToken((n) => n + 1);
+    setClient(p);
+  }
+
+  // A locality/address picked from the search box becomes the client point.
+  function handleSearchSelect(p: LatLng, label: string) {
+    setUsedFallback(false);
+    setClientLabel(label);
     setClient(p);
   }
 
@@ -101,16 +116,19 @@ export default function MapView({
     if (initialClient) return;
     if (!navigator.geolocation) {
       setUsedFallback(true);
+      setClientLabel(null);
       setClient(FALLBACK_CLIENT);
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setUsedFallback(false);
+        setClientLabel(null);
         setClient({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       },
       () => {
         setUsedFallback(true);
+        setClientLabel(null);
         setClient(FALLBACK_CLIENT);
       },
       { enableHighAccuracy: true, timeout: 8000 },
@@ -127,6 +145,8 @@ export default function MapView({
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setUsedFallback(false);
+        setClientLabel(null);
+        setSearchClearToken((n) => n + 1);
         setClient({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       },
       () => setError(t("hero.fallback")),
@@ -140,6 +160,7 @@ export default function MapView({
   return (
     <div className="app">
       <div className="app__map">
+        <LocationSearch onSelect={handleSearchSelect} clearToken={searchClearToken} />
         <LeafletMap
           center={initialClient ? [initialClient.lat, initialClient.lng] : DEFAULT_CENTER}
           zoom={initialClient ? 12 : DEFAULT_ZOOM}
@@ -179,7 +200,8 @@ export default function MapView({
 
         <dl style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, margin: "18px 0 0" }}>
           <div>
-            {t("hero.yourLocation")}: {client ? coord(client) : t("hero.locating")}
+            {t("hero.yourLocation")}:{" "}
+            {clientLabel ?? (client ? coord(client) : t("hero.locating"))}
           </div>
         </dl>
 

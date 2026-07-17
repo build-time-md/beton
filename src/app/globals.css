@@ -135,11 +135,12 @@ a {
 }
 .app__panel {
   position: absolute;
-  top: 16px;
+  /* Sits below the floating search bar (top: 16px, ~46px tall). */
+  top: 74px;
   left: 16px;
   z-index: 1000;
   width: 348px;
-  max-height: calc(100% - 32px);
+  max-height: calc(100% - 90px);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -188,6 +189,107 @@ a {
 /* Price preview pill over the map (mobile only). */
 .map-pill {
   display: none;
+}
+
+/* ---- Location search floating over the map ---- */
+.map-search {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 1001; /* above the calculator panel (1000) */
+  width: 348px;
+  max-width: calc(100% - 32px);
+}
+@media (min-width: 1024px) {
+  .map-search {
+    width: 420px;
+  }
+}
+.map-search__field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 10px 0 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+.map-search__field:focus-within {
+  border-color: var(--brand);
+}
+.map-search__icon {
+  flex: none;
+  color: var(--muted);
+}
+.map-search__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  /* 16px keeps iOS Safari from auto-zooming on focus. */
+  font-size: 16px;
+}
+.map-search__input::placeholder {
+  color: var(--muted);
+}
+.map-search__clear {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.map-search__clear:hover {
+  color: var(--ink);
+}
+.map-search__results {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+.map-search__opt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.map-search__opt.is-active {
+  background: var(--brand-soft);
+}
+.map-search__opt-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+.map-search__opt-sub {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.map-search__msg {
+  padding: 10px;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 /* ---- Intro / value-prop band (under the hero) ---- */
@@ -956,6 +1058,16 @@ a {
     box-shadow: none;
     border-top: 1px solid var(--line);
     scroll-margin-top: 56px;
+  }
+
+  /* Full-width search over the map; the panel now sits below it in flow, so it
+     no longer needs to reserve room — just clear the top-right zoom control. */
+  .map-search {
+    top: 12px;
+    left: 12px;
+    right: 54px;
+    width: auto;
+    max-width: none;
   }
 
   /* Price preview pill over the hero map. */

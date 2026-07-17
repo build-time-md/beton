@@ -20,6 +20,12 @@ const ro: Dict = {
   "hero.yourLocation": "Locația ta",
   "hero.locating": "se determină…",
 
+  "search.placeholder": "Caută localitatea sau adresa…",
+  "search.searching": "Se caută…",
+  "search.noResults": "Nicio locație găsită",
+  "search.error": "Căutarea nu a răspuns. Încearcă din nou.",
+  "search.clear": "Șterge",
+
   "calc.grade": "Marca betonului",
   "calc.volume": "Volum (m³)",
   "calc.selectHint": "Selectează marca betonului și volumul pentru prețul betonului.",
@@ -120,6 +126,12 @@ const ru: Dict = {
   "hero.yourLocation": "Ваш адрес",
   "hero.locating": "определяется…",
 
+  "search.placeholder": "Найдите населённый пункт или адрес…",
+  "search.searching": "Идёт поиск…",
+  "search.noResults": "Ничего не найдено",
+  "search.error": "Поиск не ответил. Попробуйте ещё раз.",
+  "search.clear": "Очистить",
+
   "calc.grade": "Марка бетона",
   "calc.volume": "Объём (м³)",
   "calc.selectHint": "Выберите марку бетона и объём для расчёта стоимости бетона.",
@@ -219,6 +231,12 @@ const en: Dict = {
   "hero.fallback": "We couldn't access your location — using Ialoveni as default. Tap the button above or pick a point on the map.",
   "hero.yourLocation": "Your location",
   "hero.locating": "locating…",
+
+  "search.placeholder": "Search a locality or address…",
+  "search.searching": "Searching…",
+  "search.noResults": "No locations found",
+  "search.error": "Search didn't respond. Try again.",
+  "search.clear": "Clear",
 
   "calc.grade": "Concrete grade",
   "calc.volume": "Volume (m³)",
