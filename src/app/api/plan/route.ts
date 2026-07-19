@@ -14,11 +14,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { client, truck, gradeId, volume } = (body ?? {}) as {
+  const { client, truck, gradeId, volume, stationId } = (body ?? {}) as {
     client?: unknown;
     truck?: unknown;
     gradeId?: unknown;
     volume?: unknown;
+    stationId?: unknown;
   };
 
   if (!isValidLatLng(client)) {
@@ -39,8 +40,12 @@ export async function POST(req: Request) {
     typeof gradeId === "string" && gradeId ? getGrade(gradeId) ?? null : null;
   const vol = typeof volume === "number" && volume > 0 ? volume : 0;
 
+  // Opaque station index the customer picked. Anything malformed is dropped and
+  // the planner falls back to the nearest plant (see planDelivery).
+  const preferred = typeof stationId === "string" && stationId ? stationId : undefined;
+
   try {
-    const plan = await planDelivery(client, STATIONS, grade, vol, truck);
+    const plan = await planDelivery(client, STATIONS, grade, vol, truck, preferred);
     return NextResponse.json(plan);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Routing failed";

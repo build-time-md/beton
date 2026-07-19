@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import type { MapStation, DeliveryPlan, LatLng } from "@/lib/types";
+import type { MapStation, DeliveryPlan, LatLng, StationOption } from "@/lib/types";
 import type { OrderEstimate } from "@/lib/pricing";
 import { GRADES, DEFAULT_GRADE_ID, DEFAULT_VOLUME_M3, DEFAULT_PRICES } from "@/lib/concrete";
 import { useI18n } from "@/lib/i18n";
@@ -46,6 +46,21 @@ function deliveryRows(c: OrderEstimate, t: T): { label: string; value: string }[
   return rows;
 }
 
+/**
+ * One line of the plant dropdown. Ordered most- to least-important, because a
+ * closed <select> truncates from the right: which plant, how fresh it arrives,
+ * how many km the tariff bills, price, and last the badge that position 1
+ * already implies.
+ */
+function optionText(o: StationOption & { n: number }, t: T): string {
+  const name = t("station.n", { n: o.n });
+  if (!o.reachable) return `${name} · ${t("station.unreachable")}`;
+  const parts = [name, fmtMin(o.duration), fmtKm(o.distance)];
+  if (o.pricePerM3 != null) parts.push(`${o.pricePerM3} ${t("calc.perM3")}`);
+  if (o.nearest) parts.push(t("station.nearest"));
+  return parts.join(" · ");
+}
+
 function legName(name: string, t: T): string {
   if (name === "Camion") return t("word.truck");
   if (name === "Client") return t("word.client");
@@ -72,6 +87,8 @@ export default function MapView({
   const [gradeId, setGradeId] = useState(DEFAULT_GRADE_ID);
   const [volume, setVolume] = useState(DEFAULT_VOLUME_M3);
   const [plan, setPlan] = useState<DeliveryPlan | null>(null);
+  // Plant the customer picked by hand; null → planner takes the nearest one.
+  const [stationId, setStationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,6 +96,10 @@ export default function MapView({
     setUsedFallback(false);
     setClientLabel(null);
     setSearchClearToken((n) => n + 1);
+    // A new destination invalidates the manual pick — the plant chosen for the
+    // old address is rarely the right one here, and a stale pick can quietly
+    // quote a far-away plant.
+    setStationId(null);
     setClient(p);
   }
 
@@ -86,10 +107,12 @@ export default function MapView({
   function handleSearchSelect(p: LatLng, label: string) {
     setUsedFallback(false);
     setClientLabel(label);
+    setStationId(null);
     setClient(p);
   }
 
-  const computePlan = useCallback(async (point: LatLng, gId: string, vol: number) => {
+  const computePlan = useCallback(
+    async (point: LatLng, gId: string, vol: number, sId: string | null) => {
     setLoading(true);
     setError(null);
     try {
@@ -97,7 +120,12 @@ export default function MapView({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // No truck leg: route/delivery are the loaded leg (station -> client) only.
-        body: JSON.stringify({ client: point, gradeId: gId, volume: vol }),
+        body: JSON.stringify({
+          client: point,
+          gradeId: gId,
+          volume: vol,
+          stationId: sId ?? undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error");
@@ -108,7 +136,9 @@ export default function MapView({
     } finally {
       setLoading(false);
     }
-  }, []);
+  },
+    [],
+  );
 
   // La intrarea pe pagină: cere locația. Dacă refuză/eșuează → Ialoveni.
   useEffect(() => {
@@ -135,10 +165,10 @@ export default function MapView({
     );
   }, [initialClient]);
 
-  // Recalculează la schimbarea locației, mărcii sau volumului.
+  // Recalculează la schimbarea locației, mărcii, volumului sau stației alese.
   useEffect(() => {
-    if (client) computePlan(client, gradeId, volume);
-  }, [client, gradeId, volume, computePlan]);
+    if (client) computePlan(client, gradeId, volume, stationId);
+  }, [client, gradeId, volume, stationId, computePlan]);
 
   function requestMyLocation() {
     if (!navigator.geolocation) return;
@@ -147,6 +177,7 @@ export default function MapView({
         setUsedFallback(false);
         setClientLabel(null);
         setSearchClearToken((n) => n + 1);
+        setStationId(null);
         setClient({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       },
       () => setError(t("hero.fallback")),
@@ -156,6 +187,25 @@ export default function MapView({
   function scrollToCalc() {
     document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" });
   }
+
+  // Tapping a pin loads from that plant. Ignore ones routing can't reach, so the
+  // pick never silently falls back to a different plant than the one tapped.
+  function handleStationClick(id: string) {
+    const o = plan?.options.find((x) => x.id === id);
+    if (o && !o.reachable) return;
+    setStationId(o?.nearest ? null : id);
+  }
+
+  // Plants are anonymous, so they're numbered by proximity: "Stația 1" is always
+  // the nearest to the current address. planDelivery already sorts `options`.
+  const numbered = (plan?.options ?? []).map((o, i) => ({ ...o, n: i + 1 }));
+  const chosenNumber = numbered.find((o) => o.id === plan?.station.id)?.n;
+  // Map tooltips repeat the number + driving time, matching how the list ranks.
+  const stationInfo = Object.fromEntries(
+    numbered
+      .filter((o) => o.reachable)
+      .map((o) => [o.id, `${o.n} · ${fmtMin(o.duration)}`]),
+  );
 
   return (
     <div className="app">
@@ -168,8 +218,10 @@ export default function MapView({
           client={client}
           chosenStationId={plan?.station.id}
           stationLabel={t("map.stationLabel")}
+          stationInfo={stationInfo}
           geometry={plan?.geometry}
           onMapClick={handleMapClick}
+          onStationClick={handleStationClick}
         />
         {plan ? (
           <button className="map-pill" onClick={scrollToCalc}>
@@ -205,6 +257,9 @@ export default function MapView({
           </div>
         </dl>
 
+        {/* Deliberately a visible radio list, not a dropdown: grade is the
+            choice the customer must actually make, and a closed <select> hides
+            that there is anything to pick. Worth the vertical space. */}
         <div style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 18 }}>
           {t("calc.grade")}
         </div>
@@ -377,13 +432,39 @@ export default function MapView({
 
             <hr style={{ border: "none", borderTop: "1px solid var(--line)", margin: "18px 0" }} />
 
+            {/* The picker doubles as the "which plant" readout — a separate
+                static line would say the same thing twice, and the panel has no
+                vertical room to spare (see .app__panel max-height). */}
             <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "var(--muted)", fontSize: 12.5 }}>
+              <label style={{ display: "block", color: "var(--muted)", fontSize: 12.5 }}>
                 {t("plan.chosenStation")}
-              </div>
-              <div style={{ color: "var(--brand-darker)", fontWeight: 700 }}>
-                {t("map.stationLabel")}
-              </div>
+                {/* Inline, so flagging a manual pick costs no vertical space. */}
+                {plan.stationForced ? ` · ${t("station.manual")}` : ""}
+                {numbered.length > 1 ? (
+                  <select
+                    value={plan.station.id}
+                    // Picking the fastest plant means "no override" — the choice
+                    // then keeps tracking the address instead of pinning a plant.
+                    onChange={(e) => {
+                      const o = numbered.find((x) => x.id === e.target.value);
+                      setStationId(o?.nearest ? null : e.target.value);
+                    }}
+                    style={{ ...fieldStyle, marginTop: 4 }}
+                  >
+                    {numbered.map((o) => (
+                      <option key={o.id} value={o.id} disabled={!o.reachable}>
+                        {optionText(o, t)}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span style={{ display: "block", color: "var(--brand-darker)", fontWeight: 700 }}>
+                    {chosenNumber != null
+                      ? `${t("map.stationLabel")} ${chosenNumber}`
+                      : t("map.stationLabel")}
+                  </span>
+                )}
+              </label>
             </div>
 
             <div style={{ display: "grid", gap: 6 }}>

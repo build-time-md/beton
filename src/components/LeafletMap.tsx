@@ -108,8 +108,12 @@ export type LeafletMapProps = {
   chosenStationId?: string;
   /** Generic label shown for every plant (real names are hidden from customers). */
   stationLabel: string;
+  /** Per-station tooltip suffix (e.g. "8,4 km"), keyed by station id. */
+  stationInfo?: Record<string, string>;
   geometry?: [number, number][];
   onMapClick: (p: LatLng) => void;
+  /** Clicking a plant pin re-routes the delivery from there. */
+  onStationClick?: (id: string) => void;
 };
 
 export default function LeafletMap({
@@ -119,8 +123,10 @@ export default function LeafletMap({
   client,
   chosenStationId,
   stationLabel,
+  stationInfo,
   geometry,
   onMapClick,
+  onStationClick,
 }: LeafletMapProps) {
   return (
     <MapContainer
@@ -139,21 +145,26 @@ export default function LeafletMap({
       />
       <ClickHandler onClick={onMapClick} />
 
-      {stations.map((s) => (
-        <Marker
-          key={s.id}
-          position={[s.lat, s.lng]}
-          icon={s.id === chosenStationId ? icons.chosen : icons.station}
-        >
-          {/* Permanent generic label above the pin — real plant names stay hidden. */}
-          <Tooltip permanent direction="top" offset={[0, -46]} className="station-tip">
-            {stationLabel}
-          </Tooltip>
-          <Popup>
-            <strong>{stationLabel}</strong>
-          </Popup>
-        </Marker>
-      ))}
+      {stations.map((s) => {
+        const info = stationInfo?.[s.id];
+        return (
+          <Marker
+            key={s.id}
+            position={[s.lat, s.lng]}
+            icon={s.id === chosenStationId ? icons.chosen : icons.station}
+            // Leaflet does not bubble marker clicks to the map, so picking a
+            // plant never also moves the client point.
+            eventHandlers={
+              onStationClick ? { click: () => onStationClick(s.id) } : undefined
+            }
+          >
+            {/* Permanent generic label above the pin — real plant names stay hidden. */}
+            <Tooltip permanent direction="top" offset={[0, -46]} className="station-tip">
+              {info ? `${stationLabel} ${info}` : stationLabel}
+            </Tooltip>
+          </Marker>
+        );
+      })}
 
       {client ? (
         <Marker position={[client.lat, client.lng]} icon={icons.client}>

@@ -45,6 +45,11 @@ const ro: Dict = {
   "plan.chosenStation": "Stație aleasă",
   "map.stationLabel": "Stație beton",
 
+  "station.n": "Stația {n}",
+  "station.nearest": "rapidă",
+  "station.manual": "aleasă de tine",
+  "station.unreachable": "fără rută",
+
   "district.faqHeading": "Întrebări frecvente",
   "district.nearbyHeading": "Livrăm și în localitățile vecine",
   "district.deliveryIn": "Livrare beton în",
@@ -151,6 +156,11 @@ const ru: Dict = {
   "plan.chosenStation": "Выбранный завод",
   "map.stationLabel": "Бетонный узел",
 
+  "station.n": "Завод {n}",
+  "station.nearest": "быстрее",
+  "station.manual": "выбран вами",
+  "station.unreachable": "нет маршрута",
+
   "district.faqHeading": "Частые вопросы",
   "district.nearbyHeading": "Доставляем и в соседние населённые пункты",
   "district.deliveryIn": "Доставка бетона в",
@@ -256,6 +266,11 @@ const en: Dict = {
 
   "plan.chosenStation": "Chosen plant",
   "map.stationLabel": "Concrete plant",
+
+  "station.n": "Plant {n}",
+  "station.nearest": "fastest",
+  "station.manual": "your choice",
+  "station.unreachable": "no route",
 
   "district.faqHeading": "Frequently asked questions",
   "district.nearbyHeading": "We also deliver to nearby localities",

@@ -11,6 +11,7 @@ import type { ConcreteStation, MapStation } from "@/lib/types";
  *
  * Sources: rebuscons.md, directbeton.md, Facebook "Beton Alliance Concrete",
  * construct.md producer directory, Yandex Maps. Last researched 2026-07-04.
+ * Beton Expert Prim added 2026-07-19 (Google Maps + OpenStreetMap).
  */
 export const STATIONS: ConcreteStation[] = [
   {
@@ -45,6 +46,21 @@ export const STATIONS: ConcreteStation[] = [
     lng: 28.762501,
     address: "Str. Constructorilor, or. Vatra, Chișinău",
     verified: false,
+  },
+  {
+    id: "beton-expert-prim",
+    name: "Beton Expert Prim",
+    company: "Beton Expert Prim S.R.L.",
+    // Google Plus Code 3RJJ+PC -> 8GVC3RJJ+PC -> 47.081813, 28.831063.
+    // Corroborated 29 m away by OSM way 1361142235, a fenced landuse=industrial
+    // yard named "Fabrica de beton «Beton Expert Prim»" (centroid 47.081887,
+    // 28.831434). The site sits on the Stăuceni/Grătiești line by Șos. Balcani
+    // (E581) — ~2 km from the str. Ceucari 7 postal address the plant lists.
+    lat: 47.081813,
+    lng: 28.831063,
+    address: "Str. Ceucari 7, com. Stăuceni, Chișinău",
+    phone: "+373 606 66 001",
+    verified: true,
   },
 ];
 
